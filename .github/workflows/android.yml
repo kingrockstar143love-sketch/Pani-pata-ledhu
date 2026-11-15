@@ -21,9 +21,21 @@ jobs:
           cache: true
 
       - name: Extract SAM.AI project
+        shell: bash
         run: |
-          unzip -q SAM_AI_Flutter_Starter.zip -d /tmp/sam-ai
-          cp -R /tmp/sam-ai/SAM_AI_Flutter/. .
+          set -euo pipefail
+          unzip -q SAM_AI_Flutter_NoError.zip -d /tmp/sam-ai
+
+          PROJECT_PUBSPEC="$(find /tmp/sam-ai -name pubspec.yaml -type f -print -quit)"
+
+          if [ -z "$PROJECT_PUBSPEC" ]; then
+            echo "ERROR: pubspec.yaml not found in ZIP"
+            find /tmp/sam-ai -maxdepth 4 -type f
+            exit 1
+          fi
+
+          PROJECT_DIR="$(dirname "$PROJECT_PUBSPEC")"
+          cp -R "$PROJECT_DIR"/. .
 
       - name: Generate Android project
         run: flutter create . --platforms=android
@@ -45,4 +57,3 @@ jobs:
         with:
           name: SAM-AI-APK
           path: build/app/outputs/flutter-apk/app-release.apk
-          
